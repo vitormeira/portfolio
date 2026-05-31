@@ -151,6 +151,24 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px
 .save-btn{width:100%;background:var(--text);color:#fff;border:none;border-radius:8px;padding:12px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;margin-top:8px;transition:opacity .15s}
 .save-btn:hover{opacity:.8}
 footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)}
+.score-wrap{display:flex;align-items:center;gap:24px;margin-bottom:20px}
+.score-num{font-size:48px;font-weight:300;font-family:var(--mono);letter-spacing:-3px;line-height:1}
+.score-label{font-size:11px;color:var(--muted);margin-top:4px}
+.score-track{flex:1;height:3px;background:var(--border);border-radius:99px;overflow:hidden}
+.score-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.hitem{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.hitem:last-child{border-bottom:none}
+.hitem-label{font-size:12px;flex:1}
+.hitem-detail{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.hitem-bar{width:60px;height:2px;background:var(--border);border-radius:99px;overflow:hidden}
+.hitem-bar-fill{height:100%;background:var(--text);border-radius:99px}
+.hitem-pts{font-size:12px;font-family:var(--mono);font-weight:500;min-width:42px;text-align:right}
+.alerta{font-size:12px;padding:10px 14px;border-radius:8px;margin-bottom:8px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.alerta:last-child{margin-bottom:0}
+.alerta.warn{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.alerta.ok{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.alerta.info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+.alerta-icon{font-size:13px;flex-shrink:0;margin-top:1px}
 </style>
 </head>
 <body>
@@ -203,6 +221,24 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
       <div class="prog-ends"><span>R$ 0</span><span id="prog-meta-lbl">—</span></div>
     </div>
 
+    <div class="panel" id="health-panel">
+      <div class="panel-head">
+        <div class="panel-title">Saúde financeira</div>
+        <div style="font-size:11px;color:var(--muted)" id="health-updated"></div>
+      </div>
+      <div class="score-wrap">
+        <div>
+          <div class="score-num" id="health-score">—</div>
+          <div class="score-label" id="health-score-label">de 100 pontos</div>
+        </div>
+        <div style="flex:1">
+          <div class="score-track"><div class="score-fill" id="health-score-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div id="health-items"></div>
+      <div id="health-alertas" style="margin-top:16px"></div>
+    </div>
+
     <div class="grid-4">
       <div class="gcell">
         <div class="gcell-label">Patrimônio BRL</div>
@@ -223,6 +259,7 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
         <div class="gcell-label">Aporte mensal</div>
         <div class="gcell-val green" id="c-aporte">—</div>
         <div class="gcell-sub" id="c-aporte-sub">—</div>
+        <div class="gcell-sub" id="c-aporte-nec" style="margin-top:3px"></div>
       </div>
     </div>
 
@@ -751,6 +788,109 @@ function renderAllocChart(d, total) {
   }
 }
 
+function calcAporteNecessario(d) {
+  var brl = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
+  var usd = d.k401 + d.broker + (d.small||0) + d.reserva;
+  var total = brl + usd * d.fx;
+  var n = 7; var r = 0.065;
+  var META = 20000 * 12 / 0.04 * Math.pow(1.055, n);
+  var rn = Math.pow(1 + r, n);
+  var aporteAnual = (META - total * rn) * r / (rn - 1);
+  return Math.max(0, aporteAnual / 12 / d.fx);
+}
+
+function calcScore(d) {
+  var brl = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
+  var usd = d.k401 + d.broker + (d.small||0) + d.reserva;
+  var total = brl + usd * d.fx;
+  var META = 20000 * 12 / 0.04 * Math.pow(1.055, 7);
+  var prog = Math.min(total / META, 1);
+
+  var progPts  = Math.round(prog * 40);
+  var poupPts  = Math.round(Math.min(d.poupanca / 35, 1) * 30);
+  var scPct    = (d.small||0) * d.fx / total * 100;
+  var allocPts = scPct >= 3 && scPct <= 5 ? 20
+               : scPct < 3 ? Math.round(scPct / 3 * 20)
+               : Math.max(0, Math.round(20 - (scPct - 5) * 4));
+  var resMeses = d.reserva / d.renda;
+  var resPts   = Math.round(Math.min(resMeses / 6, 1) * 10);
+
+  return {
+    score: progPts + poupPts + allocPts + resPts,
+    items: [
+      {label:'Progresso rumo à meta', pts:progPts, max:40, detail:(prog*100).toFixed(1)+'% concluído'},
+      {label:'Taxa de poupança',       pts:poupPts, max:30, detail:d.poupanca+'% (alvo ≥35%)'},
+      {label:'Alocação Small Caps',    pts:allocPts,max:20, detail:scPct.toFixed(1)+'% (alvo 3–5%)'},
+      {label:'Reserva emergência',     pts:resPts,  max:10, detail:resMeses.toFixed(1)+' meses (alvo 6)'}
+    ]
+  };
+}
+
+function detectDesvios(d) {
+  var brl = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
+  var usd = d.k401 + d.broker + (d.small||0) + d.reserva;
+  var total = brl + usd * d.fx;
+  var alertas = [];
+
+  var scPct = (d.small||0) * d.fx / total * 100;
+  if (scPct < 3)
+    alertas.push({level:'warn', icon:'⚠', msg:'Small Caps em '+scPct.toFixed(1)+'% — mínimo 3%. Reforçar IWM/AVUV (alvo: '+fM(total*0.03)+' a '+fM(total*0.05)+')'});
+  else if (scPct > 5)
+    alertas.push({level:'info', icon:'ℹ', msg:'Small Caps em '+scPct.toFixed(1)+'% — acima do target de 5%. Monitorar no rebalanceamento anual.'});
+  else
+    alertas.push({level:'ok', icon:'✓', msg:'Small Caps em '+scPct.toFixed(1)+'% — dentro do target (3–5%).'});
+
+  var aporteNec = calcAporteNecessario(d);
+  var aporteAtual = d.renda * (d.poupanca / 100);
+  var diff = aporteAtual - aporteNec;
+  if (diff < -200)
+    alertas.push({level:'warn', icon:'⚠', msg:'Aporte atual ('+fUSD(aporteAtual)+'/mês) abaixo do necessário ('+fUSD(aporteNec)+'/mês). Déficit: '+fUSD(Math.abs(diff))+'/mês para atingir a meta em 7 anos.'});
+  else
+    alertas.push({level:'ok', icon:'✓', msg:'Aporte atual ('+fUSD(aporteAtual)+'/mês) cobre o necessário ('+fUSD(aporteNec)+'/mês). Superávit: '+fUSD(diff)+'/mês.'});
+
+  var resMeses = d.reserva / d.renda;
+  if (resMeses < 6)
+    alertas.push({level:'warn', icon:'⚠', msg:'Reserva de emergência: '+resMeses.toFixed(1)+' meses. Alvo: 6 meses ('+fUSD(d.renda*6)+').'});
+  else
+    alertas.push({level:'ok', icon:'✓', msg:'Reserva de emergência: '+resMeses.toFixed(1)+' meses — adequada.'});
+
+  if (d.poupanca < 30)
+    alertas.push({level:'warn', icon:'⚠', msg:'Taxa de poupança em '+d.poupanca+'% — abaixo do alvo de 35%.'});
+
+  return alertas;
+}
+
+function renderHealth(d) {
+  var result = calcScore(d);
+  var score  = result.score;
+  var color  = score >= 75 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626';
+  var label  = score >= 75 ? 'Boa saúde' : score >= 50 ? 'Atenção' : 'Crítico';
+
+  document.getElementById('health-score').textContent = score;
+  document.getElementById('health-score').style.color = color;
+  document.getElementById('health-score-label').textContent = label + ' · de 100 pontos';
+  setTimeout(function(){
+    var fill = document.getElementById('health-score-fill');
+    fill.style.width = score + '%';
+    fill.style.background = color;
+  }, 100);
+
+  document.getElementById('health-items').innerHTML = result.items.map(function(it) {
+    var pct = (it.pts / it.max * 100).toFixed(0);
+    return '<div class="hitem">' +
+      '<div class="hitem-label">'+it.label+'</div>' +
+      '<div class="hitem-detail">'+it.detail+'</div>' +
+      '<div class="hitem-bar"><div class="hitem-bar-fill" style="width:'+pct+'%"></div></div>' +
+      '<div class="hitem-pts">'+it.pts+'/'+it.max+'</div>' +
+    '</div>';
+  }).join('');
+
+  var alertas = detectDesvios(d);
+  document.getElementById('health-alertas').innerHTML = alertas.map(function(a) {
+    return '<div class="alerta '+a.level+'"><div class="alerta-icon">'+a.icon+'</div><div>'+a.msg+'</div></div>';
+  }).join('');
+}
+
 function render(d) {
   var brl = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
   var usd = d.k401 + d.broker + (d.small||0) + d.reserva;
@@ -773,6 +913,11 @@ function render(d) {
   document.getElementById('c-gap').textContent = fM(gap);
   document.getElementById('c-aporte').textContent = fUSD(aporte) + '/mês';
   document.getElementById('c-aporte-sub').textContent = d.poupanca + '% da renda';
+  var aporteNec = calcAporteNecessario(d);
+  var diff = aporte - aporteNec;
+  var necEl = document.getElementById('c-aporte-nec');
+  if (diff >= 0) { necEl.textContent = 'necessário: '+fUSD(aporteNec)+' ✓'; necEl.style.color='var(--green)'; }
+  else           { necEl.textContent = 'necessário: '+fUSD(aporteNec)+' ↑'; necEl.style.color='var(--amber)'; }
 
   var dotC = ['#111','#555','#888','#aaa','#ccc'];
   var brlItems = [
@@ -806,6 +951,7 @@ function render(d) {
       '</div></div>';
   }).join('');
 
+  renderHealth(d);
   renderAllocChart(d, total);
 
   var anos = [2026,2027,2028,2029,2030,2031,2032,2033];
