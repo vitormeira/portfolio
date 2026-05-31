@@ -16,6 +16,8 @@ function doPost(e) {
     var ss = SpreadsheetApp.openById(SHEET_ID);
     if (data.type === 'despesa') {
       appendDespesa(ss, data);
+    } else if (data.type === 'rewriteDespesas') {
+      rewriteDespesas(ss, data);
     } else {
       atualizarPatrimonio(ss, data);
       if (data.appendHistorico) appendHistorico(ss, data);
@@ -33,6 +35,18 @@ function doPost(e) {
 function appendDespesa(ss, data) {
   var aba = ss.getSheetByName('despesas');
   aba.appendRow([data.data, data.tipo, data.descricao, data.categoria, data.valor, data.moeda]);
+}
+
+function rewriteDespesas(ss, data) {
+  var aba = ss.getSheetByName('despesas');
+  var lastRow = aba.getLastRow();
+  if (lastRow > 1) aba.getRange(2, 1, lastRow - 1, 6).clearContent();
+  if (data.despesas && data.despesas.length > 0) {
+    var rows = data.despesas.map(function(d) {
+      return [d.data, d.tipo, d.descricao, d.categoria, d.valor, d.moeda];
+    });
+    aba.getRange(2, 1, rows.length, 6).setValues(rows);
+  }
 }
 
 function atualizarPatrimonio(ss, data) {

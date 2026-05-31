@@ -204,6 +204,8 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 .poup-bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)}
 .mc-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .15s;width:100%}
 .mc-input:focus{border-color:var(--text)}
+.desp-del{background:none;border:none;cursor:pointer;font-size:15px;color:var(--muted2);padding:4px 6px;border-radius:4px;transition:all .15s;line-height:1;flex-shrink:0}
+.desp-del:hover{color:var(--red);background:#fef2f2}
 </style>
 </head>
 <body>
@@ -1168,6 +1170,7 @@ function renderMensal() {
   document.getElementById('m-desp-list').innerHTML = sorted.length === 0
     ? '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Nenhuma despesa neste mês.</div>'
     : sorted.map(function(dep){
+        var origIdx = d.despesas.indexOf(dep);
         var cor = dep.tipo === 'fixa' ? '#2563eb' : '#d97706';
         var val = dep.moeda === 'USD' ? fUSD(dep.valor) : fBRL(dep.valor);
         var badge = '<span class="desp-tipo-badge '+dep.tipo+'">'+(dep.tipo==='fixa'?'Fixa':'Variável')+'</span>';
@@ -1176,7 +1179,10 @@ function renderMensal() {
             '<div><div class="asset-name">'+dep.descricao+'<span class="asset-tag">'+dep.categoria+'</span>'+badge+'</div>' +
             '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+dep.data+'</div></div>' +
           '</div>' +
-          '<div class="asset-r"><div class="asset-val">'+val+'</div></div>' +
+          '<div class="asset-r" style="display:flex;align-items:center;gap:8px">' +
+            '<div class="asset-val">'+val+'</div>' +
+            '<button class="desp-del" onclick="deleteDespesa('+origIdx+')" title="Excluir">×</button>' +
+          '</div>' +
         '</div>';
       }).join('');
 }
@@ -1255,16 +1261,20 @@ function renderDespList(all) {
       '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Nenhuma despesa registrada.</div>';
     return;
   }
-  document.getElementById('desp-list').innerHTML = list.map(function(d) {
-    var cor = d.tipo === 'fixa' ? '#2563eb' : '#d97706';
-    var val = d.moeda === 'USD' ? fUSD(d.valor) : fBRL(d.valor);
-    var badge = '<span class="desp-tipo-badge ' + d.tipo + '">' + (d.tipo === 'fixa' ? 'Fixa' : 'Variável') + '</span>';
+  document.getElementById('desp-list').innerHTML = list.map(function(dep) {
+    var origIdx = all.indexOf(dep);
+    var cor = dep.tipo === 'fixa' ? '#2563eb' : '#d97706';
+    var val = dep.moeda === 'USD' ? fUSD(dep.valor) : fBRL(dep.valor);
+    var badge = '<span class="desp-tipo-badge '+dep.tipo+'">'+(dep.tipo==='fixa'?'Fixa':'Variável')+'</span>';
     return '<div class="asset">' +
       '<div class="asset-l"><div class="dot" style="background:'+cor+'"></div>' +
-        '<div><div class="asset-name">'+d.descricao+'<span class="asset-tag">'+d.categoria+'</span>'+badge+'</div>' +
-        '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+d.data+'</div></div>' +
+        '<div><div class="asset-name">'+dep.descricao+'<span class="asset-tag">'+dep.categoria+'</span>'+badge+'</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+dep.data+'</div></div>' +
       '</div>' +
-      '<div class="asset-r"><div class="asset-val">'+val+'</div></div>' +
+      '<div class="asset-r" style="display:flex;align-items:center;gap:8px">' +
+        '<div class="asset-val">'+val+'</div>' +
+        '<button class="desp-del" onclick="deleteDespesa('+origIdx+')" title="Excluir">×</button>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
@@ -1292,6 +1302,20 @@ function renderDespCat(doMes, total) {
       '<div class="bench-val">'+fBRL(v)+'</div>' +
     '</div>';
   }).join('');
+}
+
+async function sincronizarDespesasSheet(despesas) {
+  await salvarNaSheet({type:'rewriteDespesas', despesas: despesas});
+}
+
+function deleteDespesa(idx) {
+  if (!confirm('Excluir esta despesa?')) return;
+  var d = load();
+  d.despesas.splice(idx, 1);
+  localStorage.setItem('pmdata', JSON.stringify(d));
+  sincronizarDespesasSheet(d.despesas);
+  renderDespesas(d.despesas);
+  if (document.getElementById('page-mensal').classList.contains('active')) renderMensal();
 }
 
 async function saveDespesa() {
