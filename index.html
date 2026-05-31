@@ -578,10 +578,12 @@ async function loadFromSheet() {
         var dr = await fetch(sheetURL('despesas'), {cache:'no-cache'});
         if (dr.ok) {
           var dt = await dr.text();
-          var despRows = parseCSVRows(dt).slice(1);
-          d.despesas = despRows.filter(function(r){ return r[0]; }).map(function(r) {
-            return {data:r[0], tipo:r[1], descricao:r[2], categoria:r[3], valor:parseFloat(r[4])||0, moeda:r[5]||'BRL'};
-          });
+          var despRows = parseCSVRows(dt).slice(1).filter(function(r){ return r[0]; });
+          if (despRows.length > 0) {
+            d.despesas = despRows.map(function(r) {
+              return {data:r[0], tipo:r[1], descricao:r[2], categoria:r[3], valor:parseFloat(String(r[4]).replace(',','.'))||0, moeda:r[5]||'BRL'};
+            });
+          }
         }
       } catch(e) {}
     }
