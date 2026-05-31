@@ -453,8 +453,9 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 var HASH = '845ca50ce7b8515c38e6a1edd8ba5b44461bf9b1ea980d4b49ddf90f83c0e765';
 
 /* ── Google Sheets ──────────────────────────────────────────────────────── */
-var SHEET_ID = '1EI6lWiym8cme9akLNhZzxw9V-fe2X-ZSz1LpYq8mPIg';
+var SHEET_ID   = '1EI6lWiym8cme9akLNhZzxw9V-fe2X-ZSz1LpYq8mPIg';
 var SHEET_GIDS = {patrimonio_atual: '0', historico_mensal: '1305051683'};
+var SCRIPT_URL = 'COLE_URL_DO_APPS_SCRIPT_AQUI';
 
 function sheetURL(tab) {
   return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
@@ -1146,7 +1147,15 @@ function render(d) {
   document.getElementById('e-poup').value = d.poupanca;
 }
 
-function saveData() {
+async function salvarNaSheet(payload) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'COLE_URL_DO_APPS_SCRIPT_AQUI') return false;
+  try {
+    await fetch(SCRIPT_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(payload)});
+    return true;
+  } catch(e) { return false; }
+}
+
+async function saveData() {
   var d = load();
   function g(id){ return parseFloat(document.getElementById(id).value) || 0; }
   d.ipca = g('e-ipca'); d.prefixado = g('e-pref'); d.rv = g('e-rv');
@@ -1155,17 +1164,36 @@ function saveData() {
   d.fx = g('e-fx') || d.fx; d.renda = g('e-renda') || d.renda;
   d.poupanca = g('e-poup') || d.poupanca;
   d.updatedAt = new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
+
   var brl = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
   var usd = d.k401 + d.broker + (d.small||0) + d.reserva;
   var mes = new Date().toLocaleDateString('pt-BR',{month:'short',year:'2-digit'})
     .replace('. ','/').replace(/^\w/,function(c){return c.toUpperCase();});
   var hist = d.historico;
   var last = hist[hist.length-1];
-  if (!last || last.mes !== mes) hist.push({mes:mes, brl:Math.round(brl), usd:Math.round(usd)});
+  var isNewMonth = !last || last.mes !== mes;
+  if (isNewMonth) hist.push({mes:mes, brl:Math.round(brl), usd:Math.round(usd)});
   else { last.brl = Math.round(brl); last.usd = Math.round(usd); }
+
   localStorage.setItem('pmdata', JSON.stringify(d));
-  toggleDrawer();
-  render(d);
+
+  var btn = document.querySelector('.save-btn');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  var ok = await salvarNaSheet({
+    ipca:d.ipca, prefixado:d.prefixado, rv:d.rv, pos:d.pos, fgts:d.fgts,
+    k401:d.k401, broker:d.broker, small:d.small||0, reserva:d.reserva,
+    fx:d.fx, renda:d.renda, poupanca:d.poupanca, updatedAt:d.updatedAt,
+    mes:mes, brl:Math.round(brl), usd:Math.round(usd), appendHistorico:isNewMonth
+  });
+
+  btn.textContent = ok ? 'Salvo na Sheet ✓' : 'Salvo localmente ✓';
+  btn.style.background = ok ? 'var(--green)' : 'var(--amber)';
+  setTimeout(function(){
+    btn.textContent = 'Salvar e atualizar';
+    btn.style.background = ''; btn.disabled = false;
+    toggleDrawer(); render(d);
+  }, 1800);
 }
 
 function simCalc() {
