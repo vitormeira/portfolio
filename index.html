@@ -362,11 +362,12 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 var HASH = '845ca50ce7b8515c38e6a1edd8ba5b44461bf9b1ea980d4b49ddf90f83c0e765';
 
 /* ── Google Sheets ──────────────────────────────────────────────────────── */
-var SHEET_ID = 'COLE_SEU_SHEET_ID_AQUI';
+var SHEET_ID = '1EI6lWiym8cme9akLNhZzxw9V-fe2X-ZSz1LpYq8mPIg';
+var SHEET_GIDS = {patrimonio_atual: '0', historico_mensal: '1305051683'};
 
 function sheetURL(tab) {
   return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-         '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(tab);
+         '/export?format=csv&gid=' + SHEET_GIDS[tab];
 }
 
 function parseCSVRows(text) {
