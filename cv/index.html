@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vitor Meira — Customer Success Leader</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --surface2: #f1f3f5;
+  --border: #e9ecef;
+  --text: #111827;
+  --muted: #6b7280;
+  --muted2: #9ca3af;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent-border: #bfdbfe;
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
+  --font: 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08), 0 2px 4px rgba(0,0,0,.04);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* NAV */
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 0 24px;
+}
+.nav-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -.01em;
+}
+.nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color .15s;
+}
+.nav-links a:hover { color: var(--text); }
+
+/* LAYOUT */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+
+/* HERO */
+.hero {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+.hero-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+  letter-spacing: -.02em;
+}
+.hero-body { flex: 1; }
+.hero-role {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--accent);
+  margin-bottom: 6px;
+  font-family: var(--mono);
+}
+.hero-name {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.hero-bio {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 580px;
+  margin-bottom: 24px;
+}
+.hero-links {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all .15s;
+  cursor: pointer;
+  border: none;
+}
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+.btn-secondary:hover { border-color: #d1d5db; background: var(--surface2); }
+
+/* SECTION */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--muted2);
+  font-family: var(--mono);
+  margin-bottom: 20px;
+}
+
+/* EXPERIENCE */
+.experience-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.exp-item {
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  transition: background .15s;
+}
+.exp-item:last-child { border-bottom: none; }
+.exp-item:hover { background: var(--surface2); }
+.exp-company {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--accent);
+  margin-bottom: 4px;
+  font-family: var(--mono);
+}
+.exp-role {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  margin-bottom: 8px;
+}
+.exp-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.exp-period {
+  font-size: 12px;
+  color: var(--muted2);
+  font-family: var(--mono);
+  white-space: nowrap;
+  padding-top: 2px;
+  text-align: right;
+}
+
+/* PROJECTS GRID */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.project-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s, transform .2s, border-color .2s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.project-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+}
+.project-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.project-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.3;
+}
+.project-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  flex: 1;
+}
+.project-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-family: var(--mono);
+}
+.tag-blue  { background: var(--accent-light); color: var(--accent); }
+.tag-green { background: var(--green-light); color: var(--green); }
+.tag-purple{ background: var(--purple-light); color: var(--purple); }
+.tag-gray  { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+
+/* SKILLS */
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.skill-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.skill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.skill-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+.skill-level {
+  font-size: 11px;
+  color: var(--muted2);
+  font-family: var(--mono);
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 32px 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted2);
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .hero { flex-direction: column; gap: 20px; }
+  .hero-name { font-size: 24px; }
+  .exp-item { grid-template-columns: 1fr; }
+  .exp-period { text-align: left; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .skills-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-name">Vitor Meira</span>
+    <ul class="nav-links">
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-avatar">VM</div>
+    <div class="hero-body">
+      <div class="hero-role">Senior Manager, AI Customer Success · Zendesk</div>
+      <h1 class="hero-name">Vitor Meira</h1>
+      <p class="hero-bio">
+        Former industrial engineer turned post-sales and Customer Success leader with 10 years of experience across financial services, technology, and education — in organizations ranging from early-stage startups to large multinationals, working across diverse cultural environments.
+      </p>
+      <div class="hero-links">
+        <a href="https://www.linkedin.com/in/vitor-meira-53131567/" target="_blank" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          LinkedIn
+        </a>
+        <a href="https://github.com/vitormeira" target="_blank" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a>
+        <a href="mailto:meira.vitorm@gmail.com" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="section-label">Experience</div>
+    <div class="experience-list">
+
+      <div class="exp-item">
+        <div>
+          <div class="exp-company">Zendesk</div>
+          <div class="exp-role">Senior Manager, AI Customer Success</div>
+          <div class="exp-desc">Leading AI-focused Customer Success initiatives, driving product adoption and measurable outcomes for enterprise clients adopting Zendesk's AI capabilities.</div>
+        </div>
+        <div class="exp-period">2024 — Present</div>
+      </div>
+
+      <div class="exp-item">
+        <div>
+          <div class="exp-company">Financial Services · Technology · Education</div>
+          <div class="exp-role">Customer Success Leader</div>
+          <div class="exp-desc">10 years building and scaling post-sales functions across diverse industries — from early-stage startups to large multinationals — spanning multiple cultural environments and complex stakeholder landscapes.</div>
+        </div>
+        <div class="exp-period">2014 — 2024</div>
+      </div>
+
+      <div class="exp-item">
+        <div>
+          <div class="exp-company">Industrial Engineering</div>
+          <div class="exp-role">Engineer → Post-Sales Transition</div>
+          <div class="exp-desc">Background in industrial engineering laid the foundation for structured problem-solving, process optimization, and operational thinking — all of which now shape a data-driven approach to customer outcomes.</div>
+        </div>
+        <div class="exp-period">Pre-2014</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="section-label">Projects & Initiatives</div>
+    <div class="projects-grid">
+
+      <div class="project-card">
+        <div class="project-icon" style="background:#eff6ff">🎓</div>
+        <div class="project-title">Master's Degree</div>
+        <div class="project-desc">Academic research at graduate level, combining analytical rigor with applied business challenges.</div>
+        <div class="project-tags">
+          <span class="tag tag-blue">Research</span>
+          <span class="tag tag-gray">Academia</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-icon" style="background:#fefce8">🌱</div>
+        <div class="project-title">Fundação Estudar</div>
+        <div class="project-desc">Facilitation work with one of Brazil's most respected leadership development organizations, empowering young professionals.</div>
+        <div class="project-tags">
+          <span class="tag tag-green">Leadership</span>
+          <span class="tag tag-gray">Education</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-icon" style="background:#f5f3ff">🧠</div>
+        <div class="project-title">Soft Skills — UniFECAF</div>
+        <div class="project-desc">Designed and delivered a Soft Skills curriculum for undergraduate students at UniFECAF, focusing on professional communication, teamwork, and leadership.</div>
+        <div class="project-tags">
+          <span class="tag tag-purple">Teaching</span>
+          <span class="tag tag-gray">UniFECAF</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-icon" style="background:#fff7ed">🏰</div>
+        <div class="project-title">Disney International Exchange</div>
+        <div class="project-desc">Cultural and professional immersion program at Walt Disney World, developing cross-cultural communication and service excellence skills.</div>
+        <div class="project-tags">
+          <span class="tag tag-blue">Global</span>
+          <span class="tag tag-gray">Culture</span>
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-icon" style="background:#f0fdf4">📚</div>
+        <div class="project-title">Knowledge Project — Content Curation</div>
+        <div class="project-desc">Ongoing curation and synthesis of ideas from books, podcasts, and thought leaders — distilling insights on decision-making, mental models, and personal mastery.</div>
+        <div class="project-tags">
+          <span class="tag tag-green">Learning</span>
+          <span class="tag tag-gray">Curation</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="section-label">Skills & Tools</div>
+    <div class="skills-grid">
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#2563eb"></div>
+        <div>
+          <div class="skill-name">Customer Success</div>
+          <div class="skill-level">10 yrs</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#7c3aed"></div>
+        <div>
+          <div class="skill-name">AI Adoption</div>
+          <div class="skill-level">Practitioner</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#059669"></div>
+        <div>
+          <div class="skill-name">Post-Sales Strategy</div>
+          <div class="skill-level">Expert</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#d97706"></div>
+        <div>
+          <div class="skill-name">Team Leadership</div>
+          <div class="skill-level">Senior Mgr</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#dc2626"></div>
+        <div>
+          <div class="skill-name">Facilitation</div>
+          <div class="skill-level">Advanced</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#0891b2"></div>
+        <div>
+          <div class="skill-name">Claude Code</div>
+          <div class="skill-level">Power User</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#4f46e5"></div>
+        <div>
+          <div class="skill-name">Zendesk</div>
+          <div class="skill-level">Expert</div>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-dot" style="background:#16a34a"></div>
+        <div>
+          <div class="skill-name">Cross-cultural Mgmt</div>
+          <div class="skill-level">Global exp.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Built with plain HTML · Vitor Meira · 2026
+</footer>
+
+</body>
+</html>
