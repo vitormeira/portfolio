@@ -14,8 +14,12 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var ss = SpreadsheetApp.openById(SHEET_ID);
-    atualizarPatrimonio(ss, data);
-    if (data.appendHistorico) appendHistorico(ss, data);
+    if (data.type === 'despesa') {
+      appendDespesa(ss, data);
+    } else {
+      atualizarPatrimonio(ss, data);
+      if (data.appendHistorico) appendHistorico(ss, data);
+    }
     return ContentService
       .createTextOutput(JSON.stringify({ok: true}))
       .setMimeType(ContentService.MimeType.JSON);
@@ -24,6 +28,11 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ok: false, error: err.message}))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+function appendDespesa(ss, data) {
+  var aba = ss.getSheetByName('despesas');
+  aba.appendRow([data.data, data.tipo, data.descricao, data.categoria, data.valor, data.moeda]);
 }
 
 function atualizarPatrimonio(ss, data) {

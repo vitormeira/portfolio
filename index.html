@@ -185,6 +185,15 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 .bench-val{font-size:12px;font-family:var(--mono);font-weight:500;min-width:80px;text-align:right}
 .sim-res-val.red{color:var(--red)}
 .fx-live{font-size:10px;color:var(--green);font-family:var(--mono);vertical-align:middle;margin-left:4px}
+.field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s;appearance:none;cursor:pointer}
+.field select:focus{border-color:var(--text)}
+.field input[type=text]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;transition:border-color .15s}
+.field input[type=text]:focus{border-color:var(--text)}
+.field input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none;transition:border-color .15s}
+.field input[type=date]:focus{border-color:var(--text)}
+.desp-tipo-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-left:6px}
+.desp-tipo-badge.fixa{background:#eff6ff;color:#1e40af}
+.desp-tipo-badge.variavel{background:#fef3c7;color:#92400e}
 </style>
 </head>
 <body>
@@ -205,6 +214,7 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
     <div class="nav-tabs">
       <div class="nav-tab active" onclick="goTo('dashboard',this)">Dashboard</div>
       <div class="nav-tab" onclick="goTo('simulador',this)">Simulador</div>
+      <div class="nav-tab" onclick="goTo('despesas',this)">Despesas</div>
       <div class="nav-tab" onclick="goTo('lembretes',this)">Lembretes <span id="rem-badge" style="display:none;background:var(--amber);color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;margin-left:4px;font-family:var(--mono)"></span></div>
     </div>
     <div class="nav-right">
@@ -413,6 +423,36 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
     </div>
   </div>
 
+  <!-- DESPESAS -->
+  <div class="page" id="page-despesas">
+    <div class="eyebrow" style="margin-bottom:8px">Despesas</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:32px">Lançamentos do mês atual.</div>
+
+    <div class="grid-4">
+      <div class="gcell"><div class="gcell-label">Total do mês</div><div class="gcell-val" id="desp-total">—</div><div class="gcell-sub" id="desp-total-sub">—</div></div>
+      <div class="gcell"><div class="gcell-label">Despesas fixas</div><div class="gcell-val blue" id="desp-fixas">—</div><div class="gcell-sub" id="desp-fixas-sub">—</div></div>
+      <div class="gcell"><div class="gcell-label">Despesas variáveis</div><div class="gcell-val amber" id="desp-vars">—</div><div class="gcell-sub" id="desp-vars-sub">—</div></div>
+      <div class="gcell"><div class="gcell-label">Maior categoria</div><div class="gcell-val" id="desp-top-cat">—</div><div class="gcell-sub" id="desp-top-cat-sub">—</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Lançamentos</div>
+        <div style="display:flex;gap:6px">
+          <div class="cf active" onclick="filterDesp('todos',this)">Todos</div>
+          <div class="cf" onclick="filterDesp('fixa',this)">Fixas</div>
+          <div class="cf" onclick="filterDesp('variavel',this)">Variáveis</div>
+        </div>
+      </div>
+      <div id="desp-list"><div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Nenhuma despesa registrada.</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:16px">Por categoria</div>
+      <div id="desp-cat-list"><div style="color:var(--muted);font-size:13px;padding:8px 0">Sem dados.</div></div>
+    </div>
+  </div>
+
   <!-- LEMBRETES -->
   <div class="page" id="page-lembretes">
     <div class="eyebrow" style="margin-bottom:8px">Lembretes de investimento</div>
@@ -449,12 +489,39 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
   <button class="save-btn" onclick="saveData()">Salvar e atualizar</button>
 </div>
 
+<div class="drawer" id="drawer-desp">
+  <div class="drawer-head">
+    <div class="drawer-title">Nova despesa</div>
+    <button class="drawer-close" onclick="toggleDespDrawer()">×</button>
+  </div>
+  <div class="field"><div class="field-label">Data</div><input id="ed-data" type="date"></div>
+  <div class="field">
+    <div class="field-label">Tipo</div>
+    <select id="ed-tipo"><option value="fixa">Fixa</option><option value="variavel">Variável</option></select>
+  </div>
+  <div class="field">
+    <div class="field-label">Categoria</div>
+    <select id="ed-cat">
+      <option>Moradia</option><option>Alimentação</option><option>Transporte</option>
+      <option>Saúde</option><option>Educação</option><option>Lazer</option>
+      <option>Assinaturas</option><option>Viagem</option><option>Outros</option>
+    </select>
+  </div>
+  <div class="field"><div class="field-label">Descrição</div><input id="ed-desc" type="text" placeholder="Ex: Aluguel apartamento"></div>
+  <div class="field"><div class="field-label">Valor</div><input id="ed-valor" type="number" step="0.01" min="0"></div>
+  <div class="field">
+    <div class="field-label">Moeda</div>
+    <select id="ed-moeda"><option value="BRL">BRL — Real</option><option value="USD">USD — Dólar</option></select>
+  </div>
+  <button class="save-btn" id="desp-save-btn" onclick="saveDespesa()">Salvar despesa</button>
+</div>
+
 <script>
 var HASH = '845ca50ce7b8515c38e6a1edd8ba5b44461bf9b1ea980d4b49ddf90f83c0e765';
 
 /* ── Google Sheets ──────────────────────────────────────────────────────── */
 var SHEET_ID   = '1EI6lWiym8cme9akLNhZzxw9V-fe2X-ZSz1LpYq8mPIg';
-var SHEET_GIDS = {patrimonio_atual: '0', historico_mensal: '1305051683'};
+var SHEET_GIDS = {patrimonio_atual: '0', historico_mensal: '1305051683', despesas: '1060665992'};
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzsvZ057ZtDuFO1s5RGbNgZW9S6Ipes6rbatE7fvsRqXh-2tla6x09ritoNAm8291HNUA/exec';
 
 function sheetURL(tab) {
@@ -505,6 +572,20 @@ async function loadFromSheet() {
     var cached = load();
     d.remDone = cached.remDone || {};
 
+    if (SHEET_GIDS.despesas) {
+      try {
+        var dr = await fetch(sheetURL('despesas'), {cache:'no-cache'});
+        if (dr.ok) {
+          var dt = await dr.text();
+          var despRows = parseCSVRows(dt).slice(1);
+          d.despesas = despRows.filter(function(r){ return r[0]; }).map(function(r) {
+            return {data:r[0], tipo:r[1], descricao:r[2], categoria:r[3], valor:parseFloat(r[4])||0, moeda:r[5]||'BRL'};
+          });
+        }
+      } catch(e) {}
+    }
+    if (!d.despesas) d.despesas = cached.despesas || [];
+
     localStorage.setItem('pmdata', JSON.stringify(d));
     return d;
   } catch(e) {
@@ -536,6 +617,13 @@ var DEF = {
   k401: 40335, broker: 17500, small: 0, reserva: 70000,
   fx: 5.70, renda: 9000, poupanca: 35, updatedAt: '',
   remDone: {},
+  despesas: [
+    {data:'01/05/2026', tipo:'fixa',     descricao:'Aluguel',           categoria:'Moradia',      valor:3500, moeda:'BRL'},
+    {data:'05/05/2026', tipo:'variavel', descricao:'Supermercado',      categoria:'Alimentação',  valor:650,  moeda:'BRL'},
+    {data:'10/05/2026', tipo:'fixa',     descricao:'Netflix + Spotify', categoria:'Assinaturas',  valor:85,   moeda:'BRL'},
+    {data:'15/05/2026', tipo:'variavel', descricao:'Restaurante',       categoria:'Alimentação',  valor:180,  moeda:'BRL'},
+    {data:'20/05/2026', tipo:'fixa',     descricao:'Plano de saúde',    categoria:'Saúde',        valor:450,  moeda:'BRL'}
+  ],
   historico: [
     {mes:'Jan/26', brl:420000, usd:110000},
     {mes:'Fev/26', brl:435000, usd:113000},
@@ -841,6 +929,156 @@ function renderAllocChart(d, total) {
     warn.className = 'alloc-warn ok';
     warn.textContent = 'Small Caps: ' + scPct.toFixed(1) + '% — dentro do target (3 a 5%). Bom trabalho.';
   }
+}
+
+/* ── Despesas ────────────────────────────────────────────────────────────── */
+var despFilter = 'todos';
+
+function toggleDespDrawer() {
+  var dr = document.getElementById('drawer-desp');
+  dr.classList.toggle('open');
+  if (dr.classList.contains('open')) {
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('ed-data').value = today;
+    document.getElementById('ed-desc').value = '';
+    document.getElementById('ed-valor').value = '';
+  }
+}
+
+function filterDesp(tipo, el) {
+  despFilter = tipo;
+  document.querySelectorAll('#page-despesas .cf').forEach(function(e){ e.classList.remove('active'); });
+  el.classList.add('active');
+  renderDespList(load().despesas || []);
+}
+
+function parseDespDate(str) {
+  if (!str) return 0;
+  var p = str.split('/');
+  return p.length === 3 ? new Date(p[2], p[1]-1, p[0]).getTime() : new Date(str).getTime();
+}
+
+function renderDespesas(despesas) {
+  var all  = despesas || [];
+  var hoje = new Date();
+  var mes  = hoje.getMonth();
+  var ano  = hoje.getFullYear();
+  var fx   = load().fx || 5.7;
+
+  var doMes = all.filter(function(d) {
+    var t = parseDespDate(d.data);
+    var dt = new Date(t);
+    return dt.getMonth() === mes && dt.getFullYear() === ano;
+  });
+
+  function emBRL(d) { return d.moeda === 'USD' ? d.valor * fx : d.valor; }
+
+  var totalBRL  = doMes.reduce(function(s,d){ return s + emBRL(d); }, 0);
+  var fixas     = doMes.filter(function(d){ return d.tipo === 'fixa'; });
+  var vars      = doMes.filter(function(d){ return d.tipo === 'variavel'; });
+  var totFixas  = fixas.reduce(function(s,d){ return s + emBRL(d); }, 0);
+  var totVars   = vars.reduce(function(s,d){ return s + emBRL(d); }, 0);
+
+  var byCat = {};
+  doMes.forEach(function(d){ byCat[d.categoria] = (byCat[d.categoria]||0) + emBRL(d); });
+  var topCat = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; })[0] || '—';
+
+  document.getElementById('desp-total').textContent    = fBRL(totalBRL);
+  document.getElementById('desp-total-sub').textContent = doMes.length + ' lançamento' + (doMes.length !== 1 ? 's' : '');
+  document.getElementById('desp-fixas').textContent    = fBRL(totFixas);
+  document.getElementById('desp-fixas-sub').textContent = fixas.length + ' lançamento' + (fixas.length !== 1 ? 's' : '');
+  document.getElementById('desp-vars').textContent     = fBRL(totVars);
+  document.getElementById('desp-vars-sub').textContent  = vars.length + ' lançamento' + (vars.length !== 1 ? 's' : '');
+  document.getElementById('desp-top-cat').textContent  = topCat;
+  document.getElementById('desp-top-cat-sub').textContent = topCat !== '—' ? fBRL(byCat[topCat]) : '—';
+
+  renderDespList(all);
+  renderDespCat(doMes, totalBRL);
+}
+
+function renderDespList(all) {
+  var list = despFilter === 'todos' ? all : all.filter(function(d){ return d.tipo === despFilter; });
+  list = list.slice().sort(function(a,b){ return parseDespDate(b.data) - parseDespDate(a.data); });
+
+  if (!list.length) {
+    document.getElementById('desp-list').innerHTML =
+      '<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Nenhuma despesa registrada.</div>';
+    return;
+  }
+  document.getElementById('desp-list').innerHTML = list.map(function(d) {
+    var cor = d.tipo === 'fixa' ? '#2563eb' : '#d97706';
+    var val = d.moeda === 'USD' ? fUSD(d.valor) : fBRL(d.valor);
+    var badge = '<span class="desp-tipo-badge ' + d.tipo + '">' + (d.tipo === 'fixa' ? 'Fixa' : 'Variável') + '</span>';
+    return '<div class="asset">' +
+      '<div class="asset-l"><div class="dot" style="background:'+cor+'"></div>' +
+        '<div><div class="asset-name">'+d.descricao+'<span class="asset-tag">'+d.categoria+'</span>'+badge+'</div>' +
+        '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+d.data+'</div></div>' +
+      '</div>' +
+      '<div class="asset-r"><div class="asset-val">'+val+'</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderDespCat(doMes, total) {
+  var byCat = {};
+  doMes.forEach(function(d){
+    var fx = load().fx || 5.7;
+    byCat[d.categoria] = (byCat[d.categoria]||0) + (d.moeda==='USD' ? d.valor*fx : d.valor);
+  });
+  var sorted = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; });
+  if (!sorted.length) {
+    document.getElementById('desp-cat-list').innerHTML =
+      '<div style="color:var(--muted);font-size:13px;padding:8px 0">Sem dados no mês atual.</div>';
+    return;
+  }
+  var max = byCat[sorted[0]];
+  document.getElementById('desp-cat-list').innerHTML = sorted.map(function(cat) {
+    var v = byCat[cat];
+    var pct = total > 0 ? (v/total*100).toFixed(1) : '0.0';
+    return '<div class="bench-row">' +
+      '<div class="bench-label">'+cat+'</div>' +
+      '<div class="bench-bar-wrap" style="width:120px"><div class="bench-bar-fill" style="width:'+(v/max*100).toFixed(0)+'%;background:#111"></div></div>' +
+      '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);min-width:36px;text-align:right">'+pct+'%</div>' +
+      '<div class="bench-val">'+fBRL(v)+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function saveDespesa() {
+  var dataRaw = document.getElementById('ed-data').value;
+  var desc    = document.getElementById('ed-desc').value.trim();
+  var valor   = parseFloat(document.getElementById('ed-valor').value);
+  if (!dataRaw || !desc || isNaN(valor) || valor <= 0) {
+    alert('Preencha data, descrição e valor.'); return;
+  }
+  var p = dataRaw.split('-');
+  var nova = {
+    data: p[2]+'/'+p[1]+'/'+p[0],
+    tipo: document.getElementById('ed-tipo').value,
+    descricao: desc,
+    categoria: document.getElementById('ed-cat').value,
+    valor: valor,
+    moeda: document.getElementById('ed-moeda').value
+  };
+
+  var d = load();
+  if (!d.despesas) d.despesas = [];
+  d.despesas.push(nova);
+  localStorage.setItem('pmdata', JSON.stringify(d));
+
+  var btn = document.getElementById('desp-save-btn');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  var ok = await salvarNaSheet(Object.assign({type:'despesa'}, nova));
+
+  btn.textContent = ok ? 'Salvo na Sheet ✓' : 'Salvo localmente ✓';
+  btn.style.background = ok ? 'var(--green)' : 'var(--amber)';
+  setTimeout(function(){
+    btn.textContent = 'Salvar despesa';
+    btn.style.background = ''; btn.disabled = false;
+    toggleDespDrawer();
+    renderDespesas(d.despesas);
+  }, 1600);
 }
 
 async function fetchFX() {
@@ -1267,6 +1505,14 @@ function goTo(page, el) {
   el.classList.add('active');
   if (page === 'simulador') { simCalc(); stressCalc(); }
   if (page === 'lembretes') renderReminders();
+  if (page === 'despesas')  renderDespesas(load().despesas || []);
+
+  var fabIcon = page === 'despesas'
+    ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nova despesa'
+    : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Atualizar valores';
+  var fab = document.querySelector('.fab');
+  fab.innerHTML = fabIcon;
+  fab.onclick = page === 'despesas' ? toggleDespDrawer : toggleDrawer;
 }
 
 function setSourceBadge(src) {
