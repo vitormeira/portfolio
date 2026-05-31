@@ -561,7 +561,8 @@ async function loadFromSheet() {
     kvRows.forEach(function(r) {
       if (!r[0]) return;
       var v = r[1];
-      d[r[0]] = (v !== '' && !isNaN(v)) ? parseFloat(v) : v;
+      var vNorm = String(v).replace(',', '.');
+      d[r[0]] = (v !== '' && !isNaN(vNorm)) ? parseFloat(vNorm) : v;
     });
 
     var histRows = parseCSVRows(texts[1]).slice(1);
