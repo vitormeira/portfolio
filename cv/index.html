@@ -314,6 +314,40 @@ main {
   font-family: var(--mono);
 }
 
+/* AI JOURNEY */
+.ai-journey-intro {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 20px;
+  max-width: 600px;
+}
+.ai-card {
+  position: relative;
+}
+.ai-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--surface2);
+  border-radius: 8px;
+  margin: 4px 0;
+}
+.ai-stat-label {
+  font-size: 11px;
+  color: var(--muted2);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.ai-stat-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--mono);
+}
+
 /* FOOTER */
 footer {
   border-top: 1px solid var(--border);
@@ -341,6 +375,7 @@ footer {
     <span class="nav-name">Vitor Meira</span>
     <ul class="nav-links">
       <li><a href="#experience">Experience</a></li>
+      <li><a href="#ai-projects">AI Projects</a></li>
       <li><a href="#projects">Projects</a></li>
       <li><a href="#skills">Skills</a></li>
     </ul>
@@ -405,6 +440,54 @@ footer {
           <div class="exp-desc">Background in industrial engineering laid the foundation for structured problem-solving, process optimization, and operational thinking — all of which now shape a data-driven approach to customer outcomes.</div>
         </div>
         <div class="exp-period">Pre-2014</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- AI PROJECTS -->
+  <section id="ai-projects">
+    <div class="section-label">AI Projects — Built with Claude Code</div>
+    <div class="ai-journey-intro">
+      A hands-on journey building real products with AI — no coding background required. Each project was conceived, designed, and shipped using Claude Code as the primary development tool.
+    </div>
+    <div class="projects-grid">
+
+      <div class="project-card ai-card">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="project-icon" style="background:#eff6ff">💰</div>
+          <span class="tag tag-green" style="font-size:10px">Shipped</span>
+        </div>
+        <div class="project-title">Personal Finance App</div>
+        <div class="project-desc">Full personal finance management tool built in 2 weeks — expense tracking, savings goals, net worth overview, and financial projections. Syncs with Google Sheets via Apps Script.</div>
+        <div class="ai-stat">
+          <span class="ai-stat-label">Built in</span>
+          <span class="ai-stat-value">2 weeks</span>
+        </div>
+        <div class="project-tags">
+          <span class="tag tag-blue">Claude Code</span>
+          <span class="tag tag-gray">Google Sheets</span>
+          <span class="tag tag-gray">Apps Script</span>
+          <span class="tag tag-purple">HTML/JS</span>
+        </div>
+      </div>
+
+      <div class="project-card ai-card" style="border-style:dashed">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="project-icon" style="background:#fefce8">📖</div>
+          <span class="tag tag-gray" style="font-size:10px">In progress</span>
+        </div>
+        <div class="project-title">Knowledge Curation Repository</div>
+        <div class="project-desc">A living knowledge base synthesizing insights from books, podcasts, and long-form content — organized by mental models, themes, and practical applications.</div>
+        <div class="ai-stat">
+          <span class="ai-stat-label">Sources</span>
+          <span class="ai-stat-value">Books · Podcasts · Articles</span>
+        </div>
+        <div class="project-tags">
+          <span class="tag tag-blue">Claude Code</span>
+          <span class="tag tag-green">Learning</span>
+          <span class="tag tag-gray">Curation</span>
+        </div>
       </div>
 
     </div>
