@@ -194,6 +194,16 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 .desp-tipo-badge{font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-left:6px}
 .desp-tipo-badge.fixa{background:#eff6ff;color:#1e40af}
 .desp-tipo-badge.variavel{background:#fef3c7;color:#92400e}
+.mes-nav{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.mes-nav-btn{width:32px;height:32px;border:1px solid var(--border);border-radius:8px;background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text);transition:all .15s;line-height:1}
+.mes-nav-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.mes-nav-btn:disabled{opacity:.3;cursor:default}
+.mes-nav-btn:disabled:hover{background:var(--surface);color:var(--text);border-color:var(--border)}
+.mes-title{font-size:20px;font-weight:400;font-family:var(--mono);letter-spacing:-.5px;min-width:70px}
+.poup-bar{height:8px;border-radius:99px;overflow:hidden;background:var(--border);margin:10px 0 6px}
+.poup-bar-fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.mc-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color .15s;width:100%}
+.mc-input:focus{border-color:var(--text)}
 </style>
 </head>
 <body>
@@ -215,6 +225,7 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
       <div class="nav-tab active" onclick="goTo('dashboard',this)">Dashboard</div>
       <div class="nav-tab" onclick="goTo('simulador',this)">Simulador</div>
       <div class="nav-tab" onclick="goTo('despesas',this)">Despesas</div>
+      <div class="nav-tab" onclick="goTo('mensal',this)">Mensal</div>
       <div class="nav-tab" onclick="goTo('lembretes',this)">Lembretes <span id="rem-badge" style="display:none;background:var(--amber);color:#fff;font-size:9px;padding:1px 6px;border-radius:99px;margin-left:4px;font-family:var(--mono)"></span></div>
     </div>
     <div class="nav-right">
@@ -450,6 +461,71 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
     <div class="panel">
       <div class="panel-title" style="margin-bottom:16px">Por categoria</div>
       <div id="desp-cat-list"><div style="color:var(--muted);font-size:13px;padding:8px 0">Sem dados.</div></div>
+    </div>
+  </div>
+
+  <!-- MENSAL -->
+  <div class="page" id="page-mensal">
+    <div class="eyebrow" style="margin-bottom:16px">Visão mensal</div>
+
+    <div class="mes-nav">
+      <button class="mes-nav-btn" id="mes-prev" onclick="navMes(-1)">‹</button>
+      <div class="mes-title" id="mes-title">—</div>
+      <button class="mes-nav-btn" id="mes-next" onclick="navMes(1)">›</button>
+    </div>
+
+    <div class="panel" style="margin-bottom:28px">
+      <div class="panel-title" style="margin-bottom:14px">Configurar mês</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:130px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Salário líquido (USD)</div>
+          <input class="mc-input" id="mc-salario" type="number" step="100" placeholder="9000" onchange="saveMesConfig()">
+        </div>
+        <div style="flex:1;min-width:130px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Alvo de poupança (%)</div>
+          <input class="mc-input" id="mc-alvo" type="number" step="1" min="0" max="100" placeholder="40" onchange="saveMesConfig()">
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:28px">
+      <div class="gcell"><div class="gcell-label">Salário líquido</div><div class="gcell-val" id="m-salario">—</div><div class="gcell-sub" id="m-salario-brl">—</div></div>
+      <div class="gcell"><div class="gcell-label">Total gastos</div><div class="gcell-val" id="m-gastos">—</div><div class="gcell-sub" id="m-gastos-sub">—</div></div>
+      <div class="gcell"><div class="gcell-label">Economizado</div><div class="gcell-val" id="m-econom">—</div><div class="gcell-sub" id="m-econom-sub">—</div></div>
+      <div class="gcell"><div class="gcell-label">% poupado</div><div class="gcell-val" id="m-pct">—</div><div class="gcell-sub" id="m-alvo-sub">—</div></div>
+    </div>
+
+    <div class="panel" style="margin-bottom:28px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <div style="font-size:12px;color:var(--muted)">Poupança realizada vs alvo</div>
+        <div style="font-size:11px;font-family:var(--mono);color:var(--muted)" id="m-prog-vals">—</div>
+      </div>
+      <div class="poup-bar"><div class="poup-bar-fill" id="m-prog-fill" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted)"><span>0%</span><span id="m-alvo-lbl">Alvo: 40%</span></div>
+      <div id="m-status-msg" style="margin-top:12px;display:none"></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:28px">
+      <div class="gcell" style="border-radius:12px;border:1px solid var(--border)">
+        <div class="gcell-label">Despesas fixas</div>
+        <div class="gcell-val blue" id="m-fixas">—</div>
+        <div class="gcell-sub" id="m-fixas-pct">—</div>
+      </div>
+      <div class="gcell" style="border-radius:12px;border:1px solid var(--border)">
+        <div class="gcell-label">Despesas variáveis</div>
+        <div class="gcell-val amber" id="m-vars">—</div>
+        <div class="gcell-sub" id="m-vars-pct">—</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:28px">
+      <div class="panel-title" style="margin-bottom:16px">Por categoria</div>
+      <div id="m-cat-list"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:16px">Lançamentos do mês</div>
+      <div id="m-desp-list"></div>
     </div>
   </div>
 
@@ -800,7 +876,7 @@ function renderBanner() {
     '<div class="alert-sub">' + pending.length + ' tarefa' + (pending.length > 1 ? 's' : '') + ' pendente' + (pending.length > 1 ? 's' : '') + ' este mês</div></div>' +
     '<div class="alert-right">' +
     '<div class="alert-date">Dia ' + first.day + '</div>' +
-    '<div class="alert-btn" onclick="goTo(\'lembretes\',document.querySelectorAll(\'.nav-tab\')[2])">Ver todos</div>' +
+    '<div class="alert-btn" onclick="goTo(\'lembretes\',document.querySelectorAll(\'.nav-tab\')[4])">Ver todos</div>' +
     '</div></div>';
 }
 
@@ -932,6 +1008,177 @@ function renderAllocChart(d, total) {
     warn.className = 'alloc-warn ok';
     warn.textContent = 'Small Caps: ' + scPct.toFixed(1) + '% — dentro do target (3 a 5%). Bom trabalho.';
   }
+}
+
+/* ── Visão Mensal ────────────────────────────────────────────────────────── */
+var currentMes = null;
+
+function getMesAtual() {
+  var now = new Date();
+  var nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return nomes[now.getMonth()] + '/' + String(now.getFullYear()).slice(2);
+}
+
+function getMesFromData(dataStr) {
+  var p = dataStr.split('/');
+  if (p.length !== 3) return null;
+  var nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return nomes[parseInt(p[1])-1] + '/' + p[2].slice(2);
+}
+
+function parseMesIdx(mesStr) {
+  var nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  var p = mesStr.split('/');
+  return parseInt('20'+p[1]) * 12 + nomes.indexOf(p[0]);
+}
+
+function getMesesDisponiveis() {
+  var d = load();
+  var set = {};
+  set[getMesAtual()] = true;
+  (d.despesas || []).forEach(function(dep) {
+    var m = getMesFromData(dep.data);
+    if (m) set[m] = true;
+  });
+  return Object.keys(set).sort(function(a,b){ return parseMesIdx(a) - parseMesIdx(b); });
+}
+
+function getMesConfig(mes) {
+  var d = load();
+  var cfg = (d.mesesConfig || {})[mes] || {};
+  return {
+    salario: cfg.salario != null ? cfg.salario : (d.renda || 9000),
+    alvo:    cfg.alvo    != null ? cfg.alvo    : (d.poupanca || 40)
+  };
+}
+
+function saveMesConfig() {
+  var sal  = parseFloat(document.getElementById('mc-salario').value);
+  var alvo = parseFloat(document.getElementById('mc-alvo').value);
+  if (isNaN(sal) || isNaN(alvo)) return;
+  var d = load();
+  if (!d.mesesConfig) d.mesesConfig = {};
+  d.mesesConfig[currentMes] = {salario: sal, alvo: alvo};
+  localStorage.setItem('pmdata', JSON.stringify(d));
+  renderMensal();
+}
+
+function navMes(dir) {
+  var lista = getMesesDisponiveis();
+  var idx = lista.indexOf(currentMes);
+  var nIdx = idx + dir;
+  if (nIdx >= 0 && nIdx < lista.length) { currentMes = lista[nIdx]; renderMensal(); }
+}
+
+function renderMensal() {
+  if (!currentMes) currentMes = getMesAtual();
+  var lista = getMesesDisponiveis();
+  var idx   = lista.indexOf(currentMes);
+  document.getElementById('mes-title').textContent = currentMes;
+  document.getElementById('mes-prev').disabled = idx <= 0;
+  document.getElementById('mes-next').disabled = idx >= lista.length - 1;
+
+  var d   = load();
+  var fx  = d.fx || 5.7;
+  var cfg = getMesConfig(currentMes);
+
+  document.getElementById('mc-salario').value = cfg.salario;
+  document.getElementById('mc-alvo').value    = cfg.alvo;
+
+  var despMes = (d.despesas || []).filter(function(dep){
+    return getMesFromData(dep.data) === currentMes;
+  });
+
+  function emBRL(dep){ return dep.moeda === 'USD' ? dep.valor * fx : dep.valor; }
+
+  var salBRL    = cfg.salario * fx;
+  var gastos    = despMes.reduce(function(s,dep){ return s + emBRL(dep); }, 0);
+  var econom    = salBRL - gastos;
+  var pctEconom = salBRL > 0 ? econom / salBRL * 100 : 0;
+  var atingiu   = pctEconom >= cfg.alvo;
+
+  var fixas    = despMes.filter(function(dep){ return dep.tipo === 'fixa'; });
+  var vars     = despMes.filter(function(dep){ return dep.tipo === 'variavel'; });
+  var totFixas = fixas.reduce(function(s,dep){ return s+emBRL(dep); }, 0);
+  var totVars  = vars.reduce(function(s,dep){ return s+emBRL(dep); }, 0);
+
+  // Cards
+  document.getElementById('m-salario').textContent     = fUSD(cfg.salario);
+  document.getElementById('m-salario-brl').textContent = '≈ ' + fBRL(salBRL) + ' · FX ' + fx.toFixed(2);
+  document.getElementById('m-gastos').textContent      = fBRL(gastos);
+  document.getElementById('m-gastos').style.color      = gastos > salBRL*(1-cfg.alvo/100) ? 'var(--red)' : 'var(--green)';
+  document.getElementById('m-gastos-sub').textContent  = despMes.length + ' lançamento' + (despMes.length!==1?'s':'');
+  document.getElementById('m-econom').textContent      = fBRL(econom);
+  document.getElementById('m-econom').style.color      = econom >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('m-econom-sub').textContent  = pctEconom.toFixed(1) + '% do salário';
+  document.getElementById('m-pct').textContent         = pctEconom.toFixed(1) + '%';
+  document.getElementById('m-pct').style.color         = atingiu ? 'var(--green)' : 'var(--amber)';
+  document.getElementById('m-alvo-sub').textContent    = 'alvo ' + cfg.alvo + '%' + (atingiu ? ' ✓' : ' · falta ' + fBRL(cfg.alvo/100*salBRL - econom));
+
+  // Barra de progresso
+  document.getElementById('m-alvo-lbl').textContent  = 'Alvo: ' + cfg.alvo + '%';
+  document.getElementById('m-prog-vals').textContent = pctEconom.toFixed(1) + '% poupado';
+  setTimeout(function(){
+    var fill = document.getElementById('m-prog-fill');
+    fill.style.width      = Math.min(pctEconom, 100) + '%';
+    fill.style.background = atingiu ? 'var(--green)' : pctEconom >= cfg.alvo*0.7 ? 'var(--amber)' : 'var(--red)';
+  }, 100);
+
+  // Status
+  var msg = document.getElementById('m-status-msg');
+  if (despMes.length === 0) {
+    msg.style.display = 'none';
+  } else if (atingiu) {
+    msg.style.display = 'flex'; msg.className = 'alerta ok';
+    msg.innerHTML = '<div class="alerta-icon">✓</div><div>Meta atingida — você poupou <strong>' + pctEconom.toFixed(1) + '%</strong> (<strong>' + fBRL(econom) + '</strong>). Alvo era ' + cfg.alvo + '%.</div>';
+  } else {
+    var falta = cfg.alvo/100*salBRL - econom;
+    msg.style.display = 'flex'; msg.className = 'alerta warn';
+    msg.innerHTML = '<div class="alerta-icon">⚠</div><div>Abaixo da meta de ' + cfg.alvo + '%. Para atingir, reduza gastos em <strong>' + fBRL(falta) + '</strong> neste mês.</div>';
+  }
+
+  // Fixas vs Variáveis
+  document.getElementById('m-fixas').textContent     = fBRL(totFixas);
+  document.getElementById('m-fixas-pct').textContent = gastos > 0 ? (totFixas/gastos*100).toFixed(1)+'% dos gastos' : '0 lançamentos';
+  document.getElementById('m-vars').textContent      = fBRL(totVars);
+  document.getElementById('m-vars-pct').textContent  = gastos > 0 ? (totVars/gastos*100).toFixed(1)+'% dos gastos' : '0 lançamentos';
+
+  // Por categoria
+  var byCat = {};
+  despMes.forEach(function(dep){ byCat[dep.categoria] = (byCat[dep.categoria]||0) + emBRL(dep); });
+  var sortedCat = Object.keys(byCat).sort(function(a,b){ return byCat[b]-byCat[a]; });
+  var maxCat = sortedCat.length ? byCat[sortedCat[0]] : 1;
+  document.getElementById('m-cat-list').innerHTML = sortedCat.length === 0
+    ? '<div style="color:var(--muted);font-size:13px;padding:8px 0">Sem despesas neste mês.</div>'
+    : sortedCat.map(function(cat){
+        var v = byCat[cat];
+        var pctG = gastos > 0 ? (v/gastos*100).toFixed(1) : '0.0';
+        var pctS = salBRL > 0 ? (v/salBRL*100).toFixed(1) : '0.0';
+        return '<div class="bench-row">' +
+          '<div class="bench-label">'+cat+'</div>' +
+          '<div class="bench-bar-wrap" style="width:100px"><div class="bench-bar-fill" style="width:'+(v/maxCat*100).toFixed(0)+'%;background:#111"></div></div>' +
+          '<div style="font-size:11px;color:var(--muted);font-family:var(--mono);min-width:36px;text-align:right">'+pctG+'%</div>' +
+          '<div class="bench-val" style="min-width:80px">'+fBRL(v)+'</div>' +
+          '<div style="font-size:10px;color:var(--muted);font-family:var(--mono);min-width:50px;text-align:right">'+pctS+'% sal.</div>' +
+        '</div>';
+      }).join('');
+
+  // Lista de despesas
+  var sorted = despMes.slice().sort(function(a,b){ return parseDespDate(b.data)-parseDespDate(a.data); });
+  document.getElementById('m-desp-list').innerHTML = sorted.length === 0
+    ? '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Nenhuma despesa neste mês.</div>'
+    : sorted.map(function(dep){
+        var cor = dep.tipo === 'fixa' ? '#2563eb' : '#d97706';
+        var val = dep.moeda === 'USD' ? fUSD(dep.valor) : fBRL(dep.valor);
+        var badge = '<span class="desp-tipo-badge '+dep.tipo+'">'+(dep.tipo==='fixa'?'Fixa':'Variável')+'</span>';
+        return '<div class="asset">' +
+          '<div class="asset-l"><div class="dot" style="background:'+cor+'"></div>' +
+            '<div><div class="asset-name">'+dep.descricao+'<span class="asset-tag">'+dep.categoria+'</span>'+badge+'</div>' +
+            '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+dep.data+'</div></div>' +
+          '</div>' +
+          '<div class="asset-r"><div class="asset-val">'+val+'</div></div>' +
+        '</div>';
+      }).join('');
 }
 
 /* ── Despesas ────────────────────────────────────────────────────────────── */
@@ -1509,13 +1756,14 @@ function goTo(page, el) {
   if (page === 'simulador') { simCalc(); stressCalc(); }
   if (page === 'lembretes') renderReminders();
   if (page === 'despesas')  renderDespesas(load().despesas || []);
+  if (page === 'mensal')    { if (!currentMes) currentMes = getMesAtual(); renderMensal(); }
 
-  var fabIcon = page === 'despesas'
+  var fabIcon = (page === 'despesas' || page === 'mensal')
     ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nova despesa'
     : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Atualizar valores';
   var fab = document.querySelector('.fab');
   fab.innerHTML = fabIcon;
-  fab.onclick = page === 'despesas' ? toggleDespDrawer : toggleDrawer;
+  fab.onclick = (page === 'despesas' || page === 'mensal') ? toggleDespDrawer : toggleDrawer;
 }
 
 function setSourceBadge(src) {
