@@ -169,6 +169,22 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 .alerta.ok{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
 .alerta.info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
 .alerta-icon{font-size:13px;flex-shrink:0;margin-top:1px}
+.risk-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:4px}
+@media(max-width:640px){.risk-row{grid-template-columns:1fr}}
+.risk-section-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.rpill{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.rpill-label{font-size:12px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpill-bar{width:60px;height:4px;background:var(--border);border-radius:99px;overflow:hidden;flex-shrink:0}
+.rpill-fill{height:100%;border-radius:99px}
+.rpill-pct{font-size:11px;font-family:var(--mono);color:var(--muted);width:34px;text-align:right;flex-shrink:0}
+.bench-row{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)}
+.bench-row:last-child{border-bottom:none}
+.bench-label{font-size:12px;flex:1}
+.bench-bar-wrap{width:100px;height:2px;background:var(--border);border-radius:99px;overflow:hidden}
+.bench-bar-fill{height:100%;border-radius:99px}
+.bench-val{font-size:12px;font-family:var(--mono);font-weight:500;min-width:80px;text-align:right}
+.sim-res-val.red{color:var(--red)}
+.fx-live{font-size:10px;color:var(--green);font-family:var(--mono);vertical-align:middle;margin-left:4px}
 </style>
 </head>
 <body>
@@ -207,7 +223,7 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
       <div class="hero-row">
         <div class="hero-item">BRL <span id="h-brl">—</span></div>
         <div class="hero-item">USD <span id="h-usd">—</span></div>
-        <div class="hero-item">câmbio <span id="h-fx">—</span></div>
+        <div class="hero-item">câmbio <span id="h-fx">—</span><span id="h-fx-live" class="fx-live" style="display:none">↻ ao vivo</span></div>
         <div class="hero-item">atualizado <span id="h-upd">—</span> <span id="h-src" style="font-family:var(--mono);font-size:10px"></span></div>
       </div>
     </div>
@@ -302,6 +318,20 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
       </div>
       <div id="proj-list"></div>
     </div>
+
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:20px">Breakdown de risco</div>
+      <div class="risk-row">
+        <div><div class="risk-section-title">Por moeda</div><div id="risk-moeda"></div></div>
+        <div><div class="risk-section-title">Por classe</div><div id="risk-classe"></div></div>
+        <div><div class="risk-section-title">Por geografia</div><div id="risk-geo"></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:16px">Comparativo vs benchmarks — projeção 7 anos</div>
+      <div id="bench-list"></div>
+    </div>
   </div>
 
   <!-- SIMULADOR -->
@@ -345,6 +375,30 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
       <div class="panel-title" style="margin-bottom:16px">Gráfico — cenário simulado</div>
       <div style="height:240px"><canvas id="sim-chart"></canvas></div>
     </div>
+    <div class="panel">
+      <div class="panel-title" style="margin-bottom:24px">Stress test — impacto imediato no patrimônio</div>
+      <div class="sim-row">
+        <div class="sim-label">Câmbio USD/BRL</div>
+        <input type="range" id="st-fx" min="3.5" max="9" step="0.1" value="5.7" oninput="stressCalc()">
+        <div class="sim-val" id="stv-fx">R$ 5,70</div>
+      </div>
+      <div class="sim-row">
+        <div class="sim-label">Mercado global (ETFs)</div>
+        <input type="range" id="st-global" min="-70" max="20" step="5" value="0" oninput="stressCalc()">
+        <div class="sim-val" id="stv-global">0%</div>
+      </div>
+      <div class="sim-row">
+        <div class="sim-label">Renda variável BR</div>
+        <input type="range" id="st-rv" min="-70" max="20" step="5" value="0" oninput="stressCalc()">
+        <div class="sim-val" id="stv-rv">0%</div>
+      </div>
+      <div class="sim-result">
+        <div><div class="sim-res-label">Patrimônio sob stress</div><div class="sim-res-val" id="st-total">—</div></div>
+        <div><div class="sim-res-label">Impacto absoluto</div><div class="sim-res-val" id="st-diff">—</div></div>
+        <div><div class="sim-res-label">Progresso na meta</div><div class="sim-res-val" id="st-prog">—</div></div>
+      </div>
+    </div>
+
     <div class="grid-2" style="margin-bottom:0">
       <div class="gcell" style="border-radius:12px;border:1px solid var(--border)">
         <div class="gcell-label">Conservador (5% / USD 2.500/mês)</div>
@@ -788,6 +842,107 @@ function renderAllocChart(d, total) {
   }
 }
 
+async function fetchFX() {
+  try {
+    var r = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL', {cache:'no-cache'});
+    if (!r.ok) throw new Error();
+    var j = await r.json();
+    var bid = parseFloat(j.USDBRL.bid);
+    return isNaN(bid) ? null : bid;
+  } catch(e) { return null; }
+}
+
+function renderPills(id, items, total) {
+  document.getElementById(id).innerHTML = items.filter(function(it){ return it.v > 0; }).map(function(it) {
+    var pct = (it.v / total * 100);
+    return '<div class="rpill">' +
+      '<div class="rpill-label">'+it.label+'</div>' +
+      '<div class="rpill-bar"><div class="rpill-fill" style="width:'+pct.toFixed(0)+'%;background:'+it.color+'"></div></div>' +
+      '<div class="rpill-pct">'+pct.toFixed(1)+'%</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderRiskBreakdown(d) {
+  var brl   = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
+  var usdBRL = (d.k401 + d.broker + (d.small||0) + d.reserva) * d.fx;
+  var total  = brl + usdBRL;
+
+  renderPills('risk-moeda', [
+    {label:'BRL', v:brl, color:'#111'},
+    {label:'USD (em R$)', v:usdBRL, color:'#2563eb'}
+  ], total);
+
+  renderPills('risk-classe', [
+    {label:'Renda Fixa BR', v:d.ipca+d.prefixado+d.pos, color:'#111'},
+    {label:'Renda Variável BR', v:d.rv, color:'#555'},
+    {label:'Previdência', v:d.fgts+d.k401*d.fx, color:'#888'},
+    {label:'ETFs Internacionais', v:d.broker*d.fx, color:'#2563eb'},
+    {label:'Small Caps', v:(d.small||0)*d.fx, color:'#f59e0b'},
+    {label:'Caixa/Reserva', v:d.reserva*d.fx, color:'#bbb'}
+  ], total);
+
+  renderPills('risk-geo', [
+    {label:'Brasil', v:brl, color:'#16a34a'},
+    {label:'EUA', v:usdBRL, color:'#2563eb'}
+  ], total);
+}
+
+function renderBenchmarks(d) {
+  var brl   = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
+  var usd   = d.k401 + d.broker + (d.small||0) + d.reserva;
+  var total = brl + usd * d.fx;
+  var n = 7;
+  function proj(taxa) { return total * Math.pow(1 + taxa, n); }
+
+  var items = [
+    {label:'Estratégia atual (6,5% real)', v:proj(0.065), highlight:true},
+    {label:'CDI (10,5% a.a.)',             v:proj(0.105)},
+    {label:'IPCA+ 5% (≈11% a.a.)',         v:proj(0.110)},
+    {label:'S&P 500 (10% USD + câmbio)',   v:proj(0.122)}
+  ];
+  var max = Math.max.apply(null, items.map(function(i){ return i.v; }));
+
+  document.getElementById('bench-list').innerHTML = items.map(function(it) {
+    var pct = (it.v / max * 100).toFixed(0);
+    var bold = it.highlight ? 'font-weight:500' : '';
+    var barC = it.highlight ? 'var(--text)' : '#ccc';
+    return '<div class="bench-row">' +
+      '<div class="bench-label" style="'+bold+'">'+it.label+'</div>' +
+      '<div class="bench-bar-wrap"><div class="bench-bar-fill" style="width:'+pct+'%;background:'+barC+'"></div></div>' +
+      '<div class="bench-val">'+fM(it.v)+'</div>' +
+    '</div>';
+  }).join('');
+}
+
+function stressCalc() {
+  var fx     = parseFloat(document.getElementById('st-fx').value);
+  var global = parseFloat(document.getElementById('st-global').value) / 100;
+  var rv     = parseFloat(document.getElementById('st-rv').value) / 100;
+
+  document.getElementById('stv-fx').textContent     = 'R$ '+fx.toFixed(2).replace('.',',');
+  document.getElementById('stv-global').textContent = (global*100>=0?'+':'')+(global*100).toFixed(0)+'%';
+  document.getElementById('stv-rv').textContent     = (rv*100>=0?'+':'')+(rv*100).toFixed(0)+'%';
+
+  var d = load();
+  var brlBase  = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
+  var usdBase  = d.k401 + d.broker + (d.small||0) + d.reserva;
+  var totalBase = brlBase + usdBase * d.fx;
+
+  var brlS  = d.ipca + d.prefixado + d.rv*(1+rv) + d.pos + d.fgts;
+  var usdS  = d.k401 + d.broker*(1+global) + (d.small||0)*(1+global) + d.reserva;
+  var totalS = brlS + usdS * fx;
+
+  var META = 20000 * 12 / 0.04 * Math.pow(1.055, 7);
+  var diff = totalS - totalBase;
+
+  document.getElementById('st-total').textContent = fM(totalS);
+  var diffEl = document.getElementById('st-diff');
+  diffEl.textContent = (diff>=0?'+':'') + fM(Math.abs(diff));
+  diffEl.className   = 'sim-res-val ' + (diff>=0?'green':'red');
+  document.getElementById('st-prog').textContent = (totalS/META*100).toFixed(1)+'% da meta';
+}
+
 function calcAporteNecessario(d) {
   var brl = d.ipca + d.prefixado + d.rv + d.pos + d.fgts;
   var usd = d.k401 + d.broker + (d.small||0) + d.reserva;
@@ -953,6 +1108,8 @@ function render(d) {
 
   renderHealth(d);
   renderAllocChart(d, total);
+  renderRiskBreakdown(d);
+  renderBenchmarks(d);
 
   var anos = [2026,2027,2028,2029,2030,2031,2032,2033];
   var p = total;
@@ -1080,7 +1237,7 @@ function goTo(page, el) {
   document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
   document.getElementById('page-'+page).classList.add('active');
   el.classList.add('active');
-  if (page === 'simulador') simCalc();
+  if (page === 'simulador') { simCalc(); stressCalc(); }
   if (page === 'lembretes') renderReminders();
 }
 
@@ -1097,6 +1254,14 @@ async function init() {
   var d = await loadFromSheet();
   var src = 'sheet';
   if (!d) { d = load(); src = 'cache'; }
+
+  var fxLive = await fetchFX();
+  if (fxLive) {
+    d.fx = fxLive;
+    localStorage.setItem('pmdata', JSON.stringify(d));
+    document.getElementById('h-fx-live').style.display = 'inline';
+  }
+
   setSourceBadge(src);
   render(d);
   renderBanner();
