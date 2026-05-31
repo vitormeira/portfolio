@@ -190,7 +190,7 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
         <div class="hero-item">BRL <span id="h-brl">—</span></div>
         <div class="hero-item">USD <span id="h-usd">—</span></div>
         <div class="hero-item">câmbio <span id="h-fx">—</span></div>
-        <div class="hero-item">atualizado <span id="h-upd">—</span></div>
+        <div class="hero-item">atualizado <span id="h-upd">—</span> <span id="h-src" style="font-family:var(--mono);font-size:10px"></span></div>
       </div>
     </div>
 
@@ -360,6 +360,64 @@ footer{text-align:center;padding:24px 40px;font-size:11px;color:var(--muted);bor
 
 <script>
 var HASH = '845ca50ce7b8515c38e6a1edd8ba5b44461bf9b1ea980d4b49ddf90f83c0e765';
+
+/* ── Google Sheets ──────────────────────────────────────────────────────── */
+var SHEET_ID = 'COLE_SEU_SHEET_ID_AQUI';
+
+function sheetURL(tab) {
+  return 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+         '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(tab);
+}
+
+function parseCSVRows(text) {
+  var rows = [];
+  text.trim().split('\n').forEach(function(line) {
+    var fields = [];
+    var cur = ''; var inQ = false;
+    for (var i = 0; i < line.length; i++) {
+      var c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { fields.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    fields.push(cur.trim());
+    rows.push(fields);
+  });
+  return rows;
+}
+
+async function loadFromSheet() {
+  if (!SHEET_ID || SHEET_ID === 'COLE_SEU_SHEET_ID_AQUI') return null;
+  try {
+    var res = await Promise.all([
+      fetch(sheetURL('patrimonio_atual'), {cache:'no-cache'}),
+      fetch(sheetURL('historico_mensal'), {cache:'no-cache'})
+    ]);
+    if (!res[0].ok || !res[1].ok) throw new Error('http error');
+    var texts = await Promise.all([res[0].text(), res[1].text()]);
+
+    var kvRows = parseCSVRows(texts[0]).slice(1);
+    var d = {};
+    kvRows.forEach(function(r) {
+      if (!r[0]) return;
+      var v = r[1];
+      d[r[0]] = (v !== '' && !isNaN(v)) ? parseFloat(v) : v;
+    });
+
+    var histRows = parseCSVRows(texts[1]).slice(1);
+    d.historico = histRows.filter(function(r){ return r[0]; }).map(function(r) {
+      return {mes:r[0], brl:parseInt(r[1])||0, usd:parseInt(r[2])||0};
+    });
+
+    var cached = load();
+    d.remDone = cached.remDone || {};
+
+    localStorage.setItem('pmdata', JSON.stringify(d));
+    return d;
+  } catch(e) {
+    return null;
+  }
+}
 
 async function sha256(s) {
   var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
@@ -879,10 +937,20 @@ function goTo(page, el) {
   if (page === 'lembretes') renderReminders();
 }
 
-function init() {
+function setSourceBadge(src) {
+  var el = document.getElementById('h-src');
+  if (!el) return;
+  el.textContent = src === 'sheet' ? '· sheet ✓' : '· cache';
+  el.style.color = src === 'sheet' ? 'var(--green)' : 'var(--muted)';
+}
+
+async function init() {
   document.getElementById('nav-date').textContent =
     new Date().toLocaleDateString('pt-BR',{day:'numeric',month:'short',year:'numeric'});
-  var d = load();
+  var d = await loadFromSheet();
+  var src = 'sheet';
+  if (!d) { d = load(); src = 'cache'; }
+  setSourceBadge(src);
   render(d);
   renderBanner();
   renderReminders();
